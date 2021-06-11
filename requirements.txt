@@ -1,0 +1,13 @@
+numpy==1.20.3
+tensorboard==2.5.0
+pandas==1.2.4
+matplotlib==3.4.2
+seaborn==0.11.1
+pillow==8.2.0
+torchmeta==1.6.0
+tqdm==4.52.0
+scipy==1.6.3
+opencv-python==4.5.2.52
+more-itertools==8.8.0
+
+

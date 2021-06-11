@@ -1,0 +1,54 @@
+{
+    "dataset": "omniglot_seqtask",
+    "run_dir": "./runs",
+    "tasklist_path": "./data_split/omniglot_seqtask/tasklist.npy",
+    "device": "cuda",
+    "cuda_img": false,
+    "supercls": true,
+    "eval_supercls": true,
+    "net": "ConvNetMonteCarlo",
+    "net_kwargs": {
+        "num_way": 5,
+        "num_in_ch": 1,
+        "num_conv_layer": 4,
+        "num_filter": 64,
+        "kernel_size": 3,
+        "maxpool_kernel_size": 2,
+        "stride": 1,
+        "padding": 1,
+        "fc_in_dim": 1,
+        "num_fc_layer": 0,
+        "num_fc_hidden": 0
+    },
+    "variational_kwargs": {
+        "num_mc_sample": 5,
+        "init_covar_value": -10.0
+    },
+    "transfm_kwargs": {
+        "img_resize": 28,
+        "is_grayscale": true,
+        "img_normalise": true
+    },
+    "trainsampler_kwargs": {
+        "seqtask": true,
+        "num_batch": 1,
+        "num_shot": 5
+    },
+    "meta_train_eval_kwargs": {
+        "nstep_outer": 50,
+        "nstep_inner": 5,
+        "lr_inner": 0.1,
+        "first_order": false,
+        "num_query_per_cls": 15,
+        "num_eval_task": 100,
+        "eval_task_by_supercls": false,
+        "eval_per_num_epoch": 50,
+        "nstep_inner_eval": 10
+    },
+    "optim_outer_name": "Adam",
+    "optim_outer_kwargs": {
+        "lr": 0.001
+    },
+    "lr_sch_outer_name": null,
+    "lr_sch_outer_kwargs": {}
+}

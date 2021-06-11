@@ -1,0 +1,177 @@
+{
+    "dataset_ls": [
+        "omniglot",
+        "cifar_fs",
+        "mini_imagenet",
+        "vggflowers",
+        "aircraft"
+    ],
+    "run_dir": "./runs",
+    "device": "cuda",
+    "cuda_img": true,
+    "net": "ConvNet",
+    "net_kwargs": {
+        "num_way": 5,
+        "num_in_ch": 3,
+        "num_conv_layer": 4,
+        "num_filter": 64,
+        "kernel_size": 3,
+        "maxpool_kernel_size": 2,
+        "stride": 1,
+        "padding": 1,
+        "fc_in_dim": 1,
+        "num_fc_layer": 0,
+        "num_fc_hidden": 0
+    },
+    "laplace_kwargs": {
+        "is_lapl_list": true,
+        "max_lapl_list_len": null,
+        "nll_supp_wrt_metaparam": true,
+        "upd_scale": 100.0,
+        "hessian_xterm": ["tpar_mpar", "mpar_tpar", "mpar_tpar_mpar"],
+        "kfac_init_mult": [
+            0.0001,
+	        0.0001,
+            0.0001,
+            0.0001,
+            0.0001,
+	        0.0001,
+	        0.0001,
+            0.0001,
+            0.01
+        ]
+    },
+    "transfm_kwargs": {
+        "is_grayscale": false,
+        "img_resize": 28,
+        "resize_interpolation": "BILINEAR",
+        "img_normalise": true
+    },
+    "meta_train_eval_kwargs": {
+        "seqtask": false,
+        "lapl_approx_reg": true,
+        "nstep_outer": 5000,
+        "num_eval_task": 100,
+        "eval_per_num_iter": 50
+    },
+    "num_task_for_kfac": 5000,
+    "supercls": false,
+    "eval_supercls": false,
+    "omniglot": {
+        "task_kwargs": {
+            "num_shot": 1,
+            "num_query_per_cls": 15,
+            "task_by_supercls": false
+        },
+        "train_eval_kwargs": {
+            "num_task_per_itr": 32,
+            "nstep_inner": 1,
+            "lr_inner": 0.4,
+            "first_order": false,
+            "eval_task_by_supercls": false,
+            "nstep_inner_eval": 3
+        },
+        "optim_outer_name": "Adam",
+        "optim_outer_kwargs": {
+            "lr": 0.001
+        },
+        "lr_sch_outer_name": null,
+        "lr_sch_outer_kwargs": {}
+    },
+    "cifar_fs": {
+        "task_kwargs": {
+            "num_shot": 1,
+            "num_query_per_cls": 15,
+            "task_by_supercls": false
+        },
+        "train_eval_kwargs": {
+            "num_task_per_itr": 32,
+            "nstep_inner": 5,
+            "lr_inner": 0.1,
+            "first_order": false,
+            "eval_task_by_supercls": false,
+            "nstep_inner_eval": 10
+        },
+        "optim_outer_name": "Adam",
+        "optim_outer_kwargs": {
+            "lr": 0.001
+        },
+        "lr_sch_outer_name": "StepLR",
+        "lr_sch_outer_kwargs": {
+            "step_size": 2500,
+            "gamma": 0.1
+        }
+    },
+    "mini_imagenet": {
+        "task_kwargs": {
+            "num_shot": 1,
+            "num_query_per_cls": 15,
+            "task_by_supercls": false
+        },
+        "train_eval_kwargs": {
+            "num_task_per_itr": 32,
+            "nstep_inner": 5,
+            "lr_inner": 0.1,
+            "first_order": false,
+            "eval_task_by_supercls": false,
+            "nstep_inner_eval": 10
+        },
+        "optim_outer_name": "Adam",
+        "optim_outer_kwargs": {
+            "lr": 0.001
+        },
+        "lr_sch_outer_name": "StepLR",
+        "lr_sch_outer_kwargs": {
+            "step_size": 2500,
+            "gamma": 0.1
+        }
+    },
+    "vggflowers": {
+        "task_kwargs": {
+            "num_shot": 1,
+            "num_query_per_cls": 15,
+            "task_by_supercls": false
+        },
+        "train_eval_kwargs": {
+            "num_task_per_itr": 32,
+            "nstep_inner": 5,
+            "lr_inner": 0.1,
+            "first_order": false,
+            "eval_task_by_supercls": false,
+            "nstep_inner_eval": 10
+        },
+        "optim_outer_name": "Adam",
+        "optim_outer_kwargs": {
+            "lr": 0.001
+        },
+        "lr_sch_outer_name": "StepLR",
+        "lr_sch_outer_kwargs": {
+            "step_size": 1000,
+            "gamma": 0.1
+        }
+    },
+    "aircraft": {
+        "task_kwargs": {
+            "num_shot": 1,
+            "num_query_per_cls": 15,
+            "task_by_supercls": false
+        },
+        "train_eval_kwargs": {
+            "num_task_per_itr": 32,
+            "nstep_inner": 5,
+            "lr_inner": 0.1,
+            "first_order": false,
+            "eval_task_by_supercls": false,
+            "nstep_inner_eval": 10
+        },
+        "optim_outer_name": "Adam",
+        "optim_outer_kwargs": {
+            "lr": 0.001
+        },
+        "lr_sch_outer_name": "StepLR",
+        "lr_sch_outer_kwargs": {
+            "step_size": 2500,
+            "gamma": 0.1
+        }
+    }
+}
