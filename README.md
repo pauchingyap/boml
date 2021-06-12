@@ -31,6 +31,7 @@ The code in this repository is for the experiments in [Addressing Catastrophic F
 
 #### Omniglot Sequential Task
 + Use main file `main_la_seqtask.py` and config file `omniglot_seqtask_la.json` for BOMLA, `main_vi_seqtask.py` and `omniglot_seqtask_vi.json` for BOMVI. 
+  
     ```
     python train/<MAIN_FILE> --config_path config/<CONFIG_FILE> --data_dir <PARENT_DATA_DIR>
     ```

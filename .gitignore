@@ -1,5 +1,3 @@
 *.egg-info
 __pycache__
 .idea
-/data_prepare
-split_generator.py
