@@ -52,7 +52,7 @@ $DATA_PATH
 
 1. Run `data_prepare/prepare_quickdraw.py` with options:
    + `--data_path`: `$DATA_PATH` as above
-   + `--npy_path`: path of the folder containing all downloaded `.npy` files (eg: `~/data_dir/quickdraw_npy`)
+   + `--npy_path`: path of the folder containing all downloaded `.npy` files (eg: `~/$DATA_PATH/quickdraw_npy`)
 
 
 ### Omniglot

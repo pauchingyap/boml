@@ -23,24 +23,21 @@ torch.backends.cudnn.deterministic = True
 torch.backends.cudnn.benchmark = False
 
 
-def train(config, logger, run_spec, data_dir, seed=0):
+def train(config, logger, run_spec, data_path, seed=0):
     torch.manual_seed(seed)
 
     start_datetime = datetime.datetime.now()
     experiment_date = '{:%Y-%m-%d_%H:%M:%S}'.format(start_datetime)
     config['experiment_parent_dir'] = os.path.join(config['run_dir'], get_run_name(config['dataset_ls']))
-    config['experiment_dir'] = os.path.join(
-        config['experiment_parent_dir'], '{}_{}_{}'.format(run_spec, experiment_date, seed)
-    )
-    config['data_dir'] = data_dir
+    config['experiment_dir'] = os.path.join(config['experiment_parent_dir'],
+                                            '{}_{}_{}'.format(run_spec, experiment_date, seed))
+    config['data_path'] = data_path
 
-    # save config json file
     if not os.path.exists(config['experiment_dir']):
         os.makedirs(config['experiment_dir'])
     with open(os.path.join(config['experiment_dir'], 'config_{}_{}.json'.format(run_spec, seed)), 'w') as outfile:
         outfile.write(json.dumps(config, indent=4))
 
-    # add file handler
     logfile_path = os.path.join(config['experiment_dir'], 'logfile_{}_{}.log'.format(run_spec, seed))
     filehandler = logging.FileHandler(filename=logfile_path, mode='a')
     logger.addHandler(filehandler)
@@ -49,7 +46,6 @@ def train(config, logger, run_spec, data_dir, seed=0):
     pil_logger.setLevel(logging.INFO)
     logger.info('running {}_{} seed {}'.format(run_spec, experiment_date, seed))
 
-    # define tensorboard writer
     writer = SummaryWriter(os.path.join(config['experiment_dir'], 'logtb'))
     result_dir = os.path.join(config['experiment_dir'], 'result')
     if not os.path.exists(result_dir):
@@ -66,7 +62,7 @@ def train(config, logger, run_spec, data_dir, seed=0):
 
     evalset = []
     for task_idx, task in enumerate(config['dataset_ls'], 0):
-        # split directory for this dataset
+
         split_dir = os.path.join('./data_split', task)
 
         optim_outer = getattr(optim, config[task]['optim_outer_name']) \
@@ -81,18 +77,16 @@ def train(config, logger, run_spec, data_dir, seed=0):
         # load meta-train and meta-eval lists
         metatrain_ls = np.load(os.path.join(split_dir, 'metatrain.npy'), allow_pickle=True).tolist()
         metatest_ls = np.load(os.path.join(split_dir, 'metatest.npy'), allow_pickle=True).tolist()
-        metatrain_dir_ls = [os.path.join(data_dir, metatrain) for metatrain in metatrain_ls]
-        metatest_dir_ls = [os.path.join(data_dir, metatest) for metatest in metatest_ls]
+        metatrain_dir_ls = [os.path.join(data_path, metatrain) for metatrain in metatrain_ls]
+        metatest_dir_ls = [os.path.join(data_path, metatest) for metatest in metatest_ls]
 
         # define datasets
         trainset = FewShotImageDataset(
-            task_list=metatrain_dir_ls, supercls=config[task]['supercls'], img_lvl=int(config[task]['supercls']) + 1,
-            transform=transformation, device=config['device'], cuda_img=config['cuda_img'],
-            verbose='{} trainset'.format(task)
+            task_list=metatrain_dir_ls, supercls=False, img_lvl=1, transform=transformation, device=config['device'],
+            cuda_img=config['cuda_img'], verbose='{} trainset'.format(task)
         )
         evalset.append(FewShotImageDataset(
-            task_list=metatest_dir_ls, supercls=config[task]['eval_supercls'],
-            img_lvl=int(config[task]['eval_supercls']) + 1, transform=transformation, device=config['device'],
+            task_list=metatest_dir_ls, supercls=False, img_lvl=1, transform=transformation, device=config['device'],
             cuda_img=config['cuda_img'], verbose='{} evalset'.format(task)
         ))
 
@@ -118,7 +112,7 @@ if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser('BOMVI Sequential Dataset')
     parser.add_argument('--config_path', type=str, help='Path of .json file to import config from')
-    parser.add_argument('--data_dir', type=str, default='../data', help='Parental directory containing all datasets')
+    parser.add_argument('--data_path', type=str, help='Parental directory path containing all datasets')
     args = parser.parse_args()
 
     # load config file
@@ -133,7 +127,7 @@ if __name__ == '__main__':
     # train
     try:
         train(config=config, logger=logger, run_spec=os.path.splitext(os.path.split(args.config_path)[-1])[0],
-              data_dir=args.data_dir, seed=random.getrandbits(24))
+              data_path=args.data_path, seed=random.getrandbits(24))
     except Exception as exc:
         logger.exception(exc)
     except KeyboardInterrupt as kbi:

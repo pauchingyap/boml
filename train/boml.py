@@ -32,10 +32,9 @@ class BayesianOnlineMetaLearnLaplaceApprox(BayesianOnlineMetaLearn):
         self.laplace_obj = laplace_obj
 
     def metatrain(
-            self, trainset, evalset, optimiser_outer, lr_scheduler_outer, lapl_approx_reg, nstep_outer, nstep_inner,
-            lr_inner, first_order, seqtask, num_shot, num_query_per_cls, num_task_per_itr, task_by_supercls,
-            eval_prev_task, eval_per_num_iter, num_eval_task, eval_task_by_supercls, nstep_inner_eval, writer, task_idx,
-            logfile_path, verbose
+            self, trainset, evalset, optimiser_outer, lr_scheduler_outer, nstep_outer, nstep_inner, lr_inner,
+            first_order, num_shot, num_query_per_cls, num_task_per_itr, eval_prev_task, eval_per_num_iter,
+            num_eval_task, nstep_inner_eval, writer, task_idx, logfile_path, verbose
     ):
 
         with trange(nstep_outer, desc='Meta-training {}'.format(verbose if verbose is not None else task_idx)) as pbar:
@@ -45,8 +44,8 @@ class BayesianOnlineMetaLearnLaplaceApprox(BayesianOnlineMetaLearn):
                 accuracy_query = torch.tensor(0., device=self.device)
 
                 trainsampler = SuppQueryBatchSampler(
-                    dataset=trainset, seqtask=seqtask, num_task=num_task_per_itr, task_by_supercls=task_by_supercls,
-                    num_way=self.model.num_way, num_shot=num_shot, num_query_per_cls=num_query_per_cls
+                    dataset=trainset, seqtask=False, num_task=num_task_per_itr, num_way=self.model.num_way,
+                    num_shot=num_shot, num_query_per_cls=num_query_per_cls
                 )
                 trainloader = DataLoader(trainset, batch_sampler=trainsampler)
 
@@ -69,13 +68,7 @@ class BayesianOnlineMetaLearnLaplaceApprox(BayesianOnlineMetaLearn):
                     with torch.no_grad():
                         accuracy_query += get_accuracy(labels=query_lbl, outputs=out_query)
 
-                if lapl_approx_reg:
-                    loss_outer = \
-                        (nll_query + nll_supp) / num_task_per_itr - self.laplace_obj.laplace_approx(param=None) \
-                            if self.laplace_obj.nll_supp_wrt_metaparam \
-                        else nll_query / num_task_per_itr - self.laplace_obj.laplace_approx(param=None)
-                else:
-                    loss_outer = nll_query / num_task_per_itr
+                loss_outer = (nll_query + nll_supp) / num_task_per_itr - self.laplace_obj.laplace_approx(param=None)
 
                 accuracy_query.div_(num_task_per_itr)
 
@@ -90,9 +83,8 @@ class BayesianOnlineMetaLearnLaplaceApprox(BayesianOnlineMetaLearn):
 
                     for ldr_idx, evset in enumerate(evalset):
                         loss_eval, accuracy_eval = meta_evaluation(
-                            evalset=evset, num_task=num_eval_task, task_by_supercls=eval_task_by_supercls,
-                            num_shot=num_shot, num_query_per_cls=num_query_per_cls, model=self.model,
-                            nstep_inner=nstep_inner_eval, lr_inner=lr_inner,
+                            evalset=evset, num_task=num_eval_task, num_shot=num_shot, num_query_per_cls=num_query_per_cls,
+                            model=self.model, nstep_inner=nstep_inner_eval, lr_inner=lr_inner
                         )
                         writer.add_scalar(
                             tag='loss_meta_eval_task{}'.format(ldr_idx) if eval_prev_task else 'loss_meta_eval',
@@ -115,11 +107,11 @@ class BayesianOnlineMetaLearnLaplaceApprox(BayesianOnlineMetaLearn):
                         logfile.write(str(pbar) + ('\n' if itr + 1 == nstep_outer else ' '))
 
     def metatrain_seqtask(
-            self, trainloader, evalset, optimiser_outer, lr_scheduler_outer, lapl_approx_reg, lr_inner, nstep_outer,
-            nstep_inner, first_order, num_query_per_cls, eval_per_num_epoch, num_eval_task, eval_task_by_supercls,
-            nstep_inner_eval, writer, task_idx, verbose
+            self, trainloader, evalset, optimiser_outer, lr_scheduler_outer, lr_inner, nstep_outer, nstep_inner,
+            first_order, num_query_per_cls, eval_per_num_epoch, num_eval_task, nstep_inner_eval, writer, task_idx,
+            verbose
     ):
-        num_way = trainloader.batch_sampler.num_way
+        num_way = self.model.num_way
         num_shot = trainloader.batch_sampler.num_shot
         supp_idx = num_way * num_shot
         num_batch = trainloader.__len__()
@@ -150,12 +142,7 @@ class BayesianOnlineMetaLearnLaplaceApprox(BayesianOnlineMetaLearn):
                 with torch.no_grad():
                     acc_query += get_accuracy(labels=query_lbl, outputs=out_query)
 
-            if lapl_approx_reg:
-                loss_outer = (nll_query + nll_supp) / num_batch - self.laplace_obj.laplace_approx(param=None) \
-                    if self.laplace_obj.nll_supp_wrt_metaparam \
-                    else nll_query / num_batch - self.laplace_obj.laplace_approx(param=None)
-            else:
-                loss_outer = nll_query
+            loss_outer = (nll_query + nll_supp) / num_batch - self.laplace_obj.laplace_approx(param=None)
 
             acc_query.div_(num_batch)
 
@@ -169,9 +156,8 @@ class BayesianOnlineMetaLearnLaplaceApprox(BayesianOnlineMetaLearn):
             # meta-evaluation
             if (epoch + 1) % eval_per_num_epoch == 0:
                 loss_eval, acc_eval = meta_evaluation(
-                    evalset, num_task=num_eval_task, task_by_supercls=eval_task_by_supercls, num_shot=num_shot,
-                    num_query_per_cls=num_query_per_cls, model=self.model, nstep_inner=nstep_inner_eval,
-                    lr_inner=lr_inner
+                    evalset, num_task=num_eval_task, num_shot=num_shot, num_query_per_cls=num_query_per_cls,
+                    model=self.model, nstep_inner=nstep_inner_eval, lr_inner=lr_inner
                 )
                 if writer is not None:
                     ev_glob_step = task_idx * nstep_outer + epoch + 1
@@ -187,9 +173,8 @@ class BayesianOnlineMetaLearnVariationalInference(BayesianOnlineMetaLearn):
 
     def metatrain(
             self, trainset, evalset, optimiser_outer, lr_scheduler_outer, nstep_outer, nstep_inner, lr_inner,
-            first_order, seqtask, num_task_per_itr, task_by_supercls, num_shot, num_query_per_cls, eval_prev_task,
-            eval_per_num_iter, num_eval_task, eval_task_by_supercls, nstep_inner_eval, writer, task_idx, logfile_path,
-            verbose
+            first_order, num_task_per_itr, num_shot, num_query_per_cls, eval_prev_task, eval_per_num_iter,
+            num_eval_task, nstep_inner_eval, writer, task_idx, logfile_path, verbose
     ):
         with trange(nstep_outer, desc='meta-train {}'.format(verbose if verbose is not None else task_idx)) as pbar:
             for itr in range(nstep_outer):
@@ -206,8 +191,8 @@ class BayesianOnlineMetaLearnVariationalInference(BayesianOnlineMetaLearn):
                 accuracy_query = torch.tensor(0., device=self.device)
 
                 trainsampler = SuppQueryBatchSampler(
-                    dataset=trainset, seqtask=seqtask, num_task=num_task_per_itr, task_by_supercls=task_by_supercls,
-                    num_way=self.model.num_way, num_shot=num_shot, num_query_per_cls=num_query_per_cls
+                    dataset=trainset, seqtask=False, num_task=num_task_per_itr, num_way=self.model.num_way,
+                    num_shot=num_shot, num_query_per_cls=num_query_per_cls
                 )
                 trainloader = DataLoader(trainset, batch_sampler=trainsampler)
 
@@ -241,10 +226,8 @@ class BayesianOnlineMetaLearnVariationalInference(BayesianOnlineMetaLearn):
                     # reduction on n_sample dim only
                     nll_supp = cross_entropy(input=out_supp, target=support_lbl, reduction='sum')
 
-                    # loss for the supp and query negloglik terms for one task
                     nll_querysupp_one_task = (nll_query + nll_supp) / nll_querysupp_one_task_divisor
 
-                    # accumulate gradient for query and supp loss per batch
                     optimiser_outer.zero_grad()
                     nll_querysupp_one_task.backward()
 
@@ -256,11 +239,9 @@ class BayesianOnlineMetaLearnVariationalInference(BayesianOnlineMetaLearn):
                             g_mu += mu.grad
                             g_cov += cov.grad
 
-                            # zero gradients after accumulating mean and cov gradients
                             mu.grad.zero_()
                             cov.grad.zero_()
 
-                        # accumulate nll no_grad for graph
                         loss_outer += nll_querysupp_one_task
                         accuracy_query += get_accuracy(labels=query_lbl, outputs=out_query)
                         negloglik_query += nll_query
@@ -307,10 +288,9 @@ class BayesianOnlineMetaLearnVariationalInference(BayesianOnlineMetaLearn):
 
                     for ldr_idx, evset in enumerate(evalset):
                         loss_eval, accuracy_eval = meta_evaluation_vi(
-                            evset, num_task=num_eval_task, task_by_supercls=eval_task_by_supercls,
-                            num_shot=num_shot, num_query_per_cls=num_query_per_cls, model=self.model,
-                            variational_obj=self.var_obj, inner_on_mean=True, n_sample=1, nstep_inner=nstep_inner_eval,
-                            lr_inner=lr_inner, device=self.device
+                            evset, num_task=num_eval_task, num_shot=num_shot, num_query_per_cls=num_query_per_cls,
+                            model=self.model, variational_obj=self.var_obj, inner_on_mean=True, n_sample=1,
+                            nstep_inner=nstep_inner_eval, lr_inner=lr_inner, device=self.device
                         )
                         writer.add_scalar(
                             tag='loss_meta_eval_task{}'.format(ldr_idx) if eval_prev_task else 'loss_meta_eval',
@@ -334,10 +314,10 @@ class BayesianOnlineMetaLearnVariationalInference(BayesianOnlineMetaLearn):
 
     def metatrain_seqtask(
             self, trainloader, evalset, optimiser_outer, lr_scheduler_outer, lr_inner, nstep_outer, nstep_inner,
-            first_order, eval_per_num_epoch, num_eval_task, eval_task_by_supercls, num_query_per_cls, nstep_inner_eval,
-            writer, task_idx, verbose
+            first_order, eval_per_num_epoch, num_eval_task, num_query_per_cls, nstep_inner_eval, writer, task_idx,
+            verbose
     ):
-        num_way = trainloader.batch_sampler.num_way
+        num_way = self.model.num_way
         num_shot = trainloader.batch_sampler.num_shot
         supp_idx = num_way * num_shot
         num_batch = trainloader.__len__()
@@ -392,7 +372,6 @@ class BayesianOnlineMetaLearnVariationalInference(BayesianOnlineMetaLearn):
 
             # update mean and covar
             optimiser_outer.zero_grad()
-
             loss_outer.backward()
             optimiser_outer.step()
 
@@ -402,9 +381,9 @@ class BayesianOnlineMetaLearnVariationalInference(BayesianOnlineMetaLearn):
             # meta-evaluation
             if (epoch + 1) % eval_per_num_epoch == 0:
                 loss_eval, acc_eval = meta_evaluation_vi(
-                    evalset, num_task=num_eval_task, task_by_supercls=eval_task_by_supercls, num_shot=num_shot,
-                    num_query_per_cls=num_query_per_cls, model=self.model, variational_obj=self.var_obj,
-                    inner_on_mean=True, n_sample=1, nstep_inner=nstep_inner_eval, lr_inner=lr_inner, device=self.device
+                    evalset, num_task=num_eval_task, num_shot=num_shot, num_query_per_cls=num_query_per_cls,
+                    model=self.model, variational_obj=self.var_obj, inner_on_mean=True, n_sample=1,
+                    nstep_inner=nstep_inner_eval, lr_inner=lr_inner, device=self.device
                 )
                 if writer is not None:
                     ev_glob_step = task_idx * nstep_outer + epoch + 1

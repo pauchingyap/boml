@@ -25,24 +25,22 @@ torch.backends.cudnn.deterministic = True
 torch.backends.cudnn.benchmark = False
 
 
-def train(config, logger, run_spec, data_dir, seed):
+def train(config, logger, run_spec, data_path, seed):
     torch.manual_seed(seed)
     start_datetime = datetime.datetime.now()
-    # add additional experiment details to config
+
     experiment_date = '{:%Y-%m-%d_%H:%M:%S}'.format(start_datetime)
     config['experiment_parent_dir'] = os.path.join(config['run_dir'], config['dataset'])
     config['experiment_dir'] = os.path.join(config['experiment_parent_dir'],
                                             '{}_{}_{}'.format(run_spec, experiment_date, seed))
-    config['data_dir'] = data_dir
+    config['data_path'] = data_path
 
-    # save config json file
     if not os.path.exists(config['experiment_dir']):
         os.makedirs(config['experiment_dir'])
 
     with open(os.path.join(config['experiment_dir'], 'config{}_{}.json'.format(0, run_spec)), 'w') as outfile:
         outfile.write(json.dumps(config, indent=4))
 
-    # add file handler
     logfile_path = os.path.join(config['experiment_dir'], 'logfile_{}_{}.log'.format(run_spec, seed))
     filehandler = logging.FileHandler(filename=logfile_path, mode='a')
     logger.addHandler(filehandler)
@@ -51,15 +49,13 @@ def train(config, logger, run_spec, data_dir, seed):
     pil_logger.setLevel(logging.INFO)
     logger.info('running {}_{} seed {}'.format(run_spec, experiment_date, seed))
 
-    # split directory for this dataset
     split_dir = os.path.join('./data_split', config['dataset'])
 
     # load task list
     taskls = np.load(config['tasklist_path'], allow_pickle=True).tolist()
     np.save(os.path.join(config['experiment_dir'], 'tasklist.npy'), taskls)
-    tasklist = [[os.path.join(config['data_dir'], path) for path in task] for task in taskls]
+    tasklist = [[os.path.join(config['data_path'], path) for path in task] for task in taskls]
 
-    # define summarywriter
     writer = SummaryWriter(os.path.join(config['experiment_dir'], 'logtb'))
     result_dir = os.path.join(config['experiment_dir'], 'result')
     if not os.path.exists(result_dir):
@@ -76,12 +72,9 @@ def train(config, logger, run_spec, data_dir, seed):
 
     transformation = transforms.Compose(enlist_transformation(device=config['device'], **config['transfm_kwargs']))
     metatest_ls = np.load(os.path.join(split_dir, 'metatest.npy'), allow_pickle=True).tolist()
-    metatest_dir_ls = [os.path.join(data_dir, metatest) for metatest in metatest_ls]
-    # meta-evaluation dataset
-    evalset = FewShotImageDataset(
-        task_list=metatest_dir_ls, supercls=config['eval_supercls'], img_lvl=int(config['eval_supercls']) + 1,
-        transform=transformation, device=config['device'], cuda_img=config['cuda_img'], verbose=None
-    )
+    metatest_dir_ls = [os.path.join(data_path, metatest) for metatest in metatest_ls]
+    evalset = FewShotImageDataset(task_list=metatest_dir_ls, supercls=True, img_lvl=2, transform=transformation,
+                                  device=config['device'], cuda_img=config['cuda_img'], verbose=None)
 
     with tqdm(enumerate(tasklist), desc='bomvi seqtask', total=len(tasklist)) as pbar:
         for task_idx, task in enumerate(tasklist):
@@ -93,10 +86,8 @@ def train(config, logger, run_spec, data_dir, seed):
                 scheduler_outer = getattr(lr_scheduler, config['lr_sch_outer_name'])\
                     (optim_outer, **config['lr_sch_outer_kwargs'])
 
-            trainset = FewShotImageDataset(
-                task_list=task, supercls=config['supercls'], img_lvl=1, transform=transformation,
-                device=config['device'], cuda_img=config['cuda_img'], verbose=None
-            )
+            trainset = FewShotImageDataset(task_list=task, supercls=True, img_lvl=1, transform=transformation,
+                                           device=config['device'], cuda_img=config['cuda_img'], verbose=None)
             trainsampler = SuppQueryBatchSampler(dataset=trainset,  **config['trainsampler_kwargs'])
             trainloader = DataLoader(trainset, batch_sampler=trainsampler)
 
@@ -125,7 +116,7 @@ if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser('BOMVI Sequential Task')
     parser.add_argument('--config_path', type=str, help='Path of .json file to import config from')
-    parser.add_argument('--data_dir', type=str, default='../data', help='Parental directory containing all datasets')
+    parser.add_argument('--data_path', type=str, help='Parental directory path containing all datasets')
     args = parser.parse_args()
 
     # load config file
@@ -140,7 +131,7 @@ if __name__ == '__main__':
     # train
     try:
         train(config=config, logger=logger, run_spec=os.path.splitext(os.path.split(args.config_path)[-1])[0],
-              data_dir=args.data_dir, seed=random.getrandbits(24))
+              data_path=args.data_path, seed=random.getrandbits(24))
     except Exception as exc:
         logger.exception(exc)
     except KeyboardInterrupt as kbi:

@@ -1,26 +1,25 @@
 import random
 import numpy as np
-import torch
 from itertools import chain
 from torch.utils.data import Sampler
-from torch.distributions.categorical import Categorical
 
 from data_generate.dataset import get_df_inds_per_col_value
 
+
 class SuppQueryBatchSampler(Sampler):
-    def __init__(self, dataset, subset_indices_per_cls=None, seqtask=True, num_batch=10, num_task=100,
-                 task_by_supercls=True, num_way=5, num_shot=1, num_query_per_cls=15):
+    def __init__(self, dataset, seqtask=True, num_batch=None, num_task=None, num_way=None, num_shot=None,
+                 num_query_per_cls=None, subset_indices_per_cls=None):
         super(SuppQueryBatchSampler, self).__init__(data_source=dataset)
         self.dataset = dataset
         self.subset_indices_per_cls = subset_indices_per_cls
         self.seqtask = seqtask
         self.num_batch = num_batch
         self.num_task = num_task
-        self.task_by_supercls = task_by_supercls
         self.num_way = num_way
         self.num_shot = num_shot
         self.num_query_per_cls = num_query_per_cls
-        self.num_sample_per_cls = self.num_shot + self.num_query_per_cls
+        if num_query_per_cls is not None:
+            self.num_sample_per_cls = self.num_shot + self.num_query_per_cls
 
     def __len__(self):
         return self.num_batch if self.seqtask else self.num_task
@@ -56,14 +55,7 @@ class SuppQueryBatchSampler(Sampler):
                 yield supp_chained + query_chained
         else:
             for _ in range(self.num_task):
-                if self.task_by_supercls:
-                    sampled_supercls = random.choice(self.dataset.df['supercls'].unique())
-                    sampled_task = random.sample(
-                        list(self.dataset.df.loc[self.dataset.df['supercls'] == sampled_supercls, 'cls_name'].unique()),
-                        k=self.num_way
-                    )
-                else:
-                    sampled_task = random.sample(list(self.dataset.df['cls_name'].unique()), k=self.num_way)
+                sampled_task = random.sample(list(self.dataset.df['cls_name'].unique()), k=self.num_way)
                 # relabel according to sampled task
                 self.dataset.relabel = ('cls_name', sampled_task)
                 self.dataset.relbl_df()

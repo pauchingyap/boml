@@ -9,16 +9,14 @@ from train.inner import inner_maml
 from train.util import get_accuracy
 
 
-def meta_evaluation(evalset, num_task, task_by_supercls, num_shot, num_query_per_cls, model, nstep_inner, lr_inner):
+def meta_evaluation(evalset, num_task, num_shot, num_query_per_cls, model, nstep_inner, lr_inner):
     loss = []
     accuracy = []
 
     num_way = model.num_way
 
-    evalsampler = SuppQueryBatchSampler(
-        dataset=evalset, seqtask=False, num_task=num_task, task_by_supercls=task_by_supercls, num_way=num_way,
-        num_shot=num_shot, num_query_per_cls=num_query_per_cls
-    )
+    evalsampler = SuppQueryBatchSampler(dataset=evalset, seqtask=False, num_task=num_task, num_way=num_way,
+                                        num_shot=num_shot, num_query_per_cls=num_query_per_cls)
     evalloader = DataLoader(evalset, batch_sampler=evalsampler)
 
     for data in evalloader:
@@ -48,15 +46,13 @@ def meta_evaluation(evalset, num_task, task_by_supercls, num_shot, num_query_per
     return loss_mean.item(), acc_mean.item()
 
 
-def meta_evaluation_vi(evalset, num_task, task_by_supercls, num_shot, num_query_per_cls, model, variational_obj,
-                       inner_on_mean, n_sample=1, nstep_inner=10, lr_inner=0.4, device=None):
+def meta_evaluation_vi(evalset, num_task, num_shot, num_query_per_cls, model, variational_obj, inner_on_mean,
+                       n_sample=1, nstep_inner=None, lr_inner=None, device=None):
     loss = []
     accuracy = []
 
-    evalsampler = SuppQueryBatchSampler(
-        dataset=evalset, seqtask=False, num_task=num_task, task_by_supercls=task_by_supercls, num_way=model.num_way,
-        num_shot=num_shot, num_query_per_cls=num_query_per_cls
-    )
+    evalsampler = SuppQueryBatchSampler(dataset=evalset, seqtask=False, num_task=num_task, num_way=model.num_way,
+                                        num_shot=num_shot, num_query_per_cls=num_query_per_cls)
     evalloader = DataLoader(evalset, batch_sampler=evalsampler)
 
     for images, labels in evalloader:

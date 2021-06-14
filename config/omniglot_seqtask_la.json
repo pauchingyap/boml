@@ -4,8 +4,6 @@
     "tasklist_path": "./data_split/omniglot_seqtask/tasklist.npy",
     "device": "cuda",
     "cuda_img": true,
-    "supercls": true,
-    "eval_supercls": true,
     "net": "ConvNet",
     "net_kwargs": {
         "num_way": 5,
@@ -21,9 +19,6 @@
         "num_fc_hidden": 0
     },
     "laplace_kwargs": {
-        "is_lapl_list": true,
-        "max_lapl_list_len": null,
-        "nll_supp_wrt_metaparam": true,
         "upd_scale": 0.01,
         "hessian_xterm": ["tpar_mpar", "mpar_tpar", "mpar_tpar_mpar"],
         "kfac_init_mult": [
@@ -49,12 +44,10 @@
         "num_shot": 5
     },
     "meta_train_eval_kwargs": {
-        "lapl_approx_reg": true,
         "nstep_outer": 50,
         "first_order": false,
         "eval_per_num_epoch": 50,
         "num_eval_task": 100,
-        "eval_task_by_supercls": false,
         "num_query_per_cls": 15,
         "nstep_inner_eval": 10
     },

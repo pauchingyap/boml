@@ -13,25 +13,28 @@ The code in this repository is for the experiments in [Addressing Catastrophic F
    
 1. Install requirements: `pip install -r requirements.txt` and internal modules: `pip install -e .`
 
+1. See `data_prepare` [README](data_prepare/README.md) to prepare for the datasets necessary for this project.
+
+1. A 16GB GPU is sufficient to run any of the experiments, although a smaller GPU might also be possible by setting `cuda_img=false` in the config files.
 
 ### Experiments
 
 #### Triathlon and Pentathlon
   
-+ Use main file `main_la_seqdataset.py` for BOMLA, `main_vi_seqdataset.py` for BOMVI. 
++ Use main file `main_la_seqdataset.py` for LA, `main_vi_seqdataset.py` for VI. 
   
 + Use config files `triathlon_*.json` for triathlon and `pentathlon_*.json` pentathlon. 
   
-+ `data_dir` takes the path of the parent folder containing all datasets.
++ `data_path` takes the path of the parent folder containing all datasets.
 
     ```
-    python train/<MAIN_FILE> --config_path config/<CONFIG_FILE> --data_dir <PARENT_DATA_DIR>
+    python train/<MAIN_FILE> --config_path config/<CONFIG_FILE> --data_path <PARENT_DATA_PATH>
     ```
    
 
 #### Omniglot Sequential Task
-+ Use main file `main_la_seqtask.py` and config file `omniglot_seqtask_la.json` for BOMLA, `main_vi_seqtask.py` and `omniglot_seqtask_vi.json` for BOMVI. 
++ Use main file `main_la_seqtask.py` and config file `omniglot_seqtask_la.json` for LA, `main_vi_seqtask.py` and `omniglot_seqtask_vi.json` for VI. 
   
     ```
-    python train/<MAIN_FILE> --config_path config/<CONFIG_FILE> --data_dir <PARENT_DATA_DIR>
+    python train/<MAIN_FILE> --config_path config/<CONFIG_FILE> --data_path <PARENT_DATA_PATH>
     ```

@@ -14,12 +14,9 @@ from curvtorch.backward_context import KroneckerContext
 
 
 class LaplaceApprox(object):
-    def __init__(self, model, is_lapl_list, max_lapl_list_len, nll_supp_wrt_metaparam, hessian_xterm, kfac_init_mult,
-                 upd_scale, device):
+    def __init__(self, model, upd_scale, hessian_xterm, kfac_init_mult, device, max_lapl_list_len=None):
         self.model = model
-        self.is_lapl_list = is_lapl_list
         self.max_lapl_list_len = max_lapl_list_len
-        self.nll_supp_wrt_metaparam = nll_supp_wrt_metaparam
         self.hessian_xterm = hessian_xterm
         self.kfac_init_mult = [kfac_init_mult] * len(OrderedDict(iter_named_modules(self.model))) \
             if not isinstance(kfac_init_mult, list) \
@@ -32,9 +29,8 @@ class LaplaceApprox(object):
         self.tpar_act_cov, self.tpar_grad_cov, self.tpar_bn_fisher \
             = self.init_kfac_blockdiag_fisher(kfac_init_mult=self.kfac_init_mult)
         # this is the nll_supp hessian wrt to meta-params
-        if nll_supp_wrt_metaparam is True:
-            self.mpar_act_cov, self.mpar_grad_cov, self.mpar_bn_fisher \
-                = self.init_kfac_blockdiag_fisher(kfac_init_mult=self.kfac_init_mult)
+        self.mpar_act_cov, self.mpar_grad_cov, self.mpar_bn_fisher \
+            = self.init_kfac_blockdiag_fisher(kfac_init_mult=self.kfac_init_mult)
 
     def init_mean(self):
         mean = [OrderedDict([
@@ -159,12 +155,11 @@ class LaplaceApprox(object):
         grad_covs = [] + self.tpar_grad_cov
         bn_fishers = [] + self.tpar_bn_fisher
 
-        if self.nll_supp_wrt_metaparam:
-            upd_scale_list += upd_scale_ls
-            means += self.mean
-            act_covs += self.mpar_act_cov
-            grad_covs += self.mpar_grad_cov
-            bn_fishers += self.mpar_bn_fisher
+        upd_scale_list += upd_scale_ls
+        means += self.mean
+        act_covs += self.mpar_act_cov
+        grad_covs += self.mpar_grad_cov
+        bn_fishers += self.mpar_bn_fisher
 
         # consider hessian cross terms (first multiply the kfac-s, then append them to the list)
         if self.hessian_xterm is not None:
@@ -279,15 +274,12 @@ class LaplaceApprox(object):
         mean = OrderedDict([
             (name, param.clone().detach()) for name, param in self.model.meta_named_parameters()
         ])
-        if self.is_lapl_list:
-            self.mean.append(mean)
+        self.mean.append(mean)
 
-            if self.max_lapl_list_len is not None and len(self.mean) > self.max_lapl_list_len:
-                del self.mean[0]
-        else:
-            self.mean = [mean]
+        if self.max_lapl_list_len is not None and len(self.mean) > self.max_lapl_list_len:
+            del self.mean[0]
 
-    def update_hessian(self, term, new_act_cov, new_grad_cov, new_bn_fisher, norm='fro'):
+    def update_hessian(self, term, new_act_cov, new_grad_cov, new_bn_fisher):
         # define which hessian term to update: tpar or mpar
         # 'tpar' is for hessian of nll_query wrt task-adapted parameters
         # 'mpar' is for hessian of nll_supp wrt meta-params
@@ -302,26 +294,14 @@ class LaplaceApprox(object):
         else:
             raise ValueError('term must be one of ("tpar" or "mpar").')
 
-        if self.is_lapl_list:
-            act_cov.append(new_act_cov)
-            grad_cov.append(new_grad_cov)
-            bn_fisher.append(new_bn_fisher)
+        act_cov.append(new_act_cov)
+        grad_cov.append(new_grad_cov)
+        bn_fisher.append(new_bn_fisher)
 
-            if self.max_lapl_list_len is not None and len(act_cov) > self.max_lapl_list_len:
-                del act_cov[0]
-                del grad_cov[0]
-                del bn_fisher[0]
-        else:
-            # approx sum of two kronecker products as one k-prod
-            # norm order 'fro' for frobenius norm in scaling for approximation
-            for name in act_cov[0].keys():
-                # compute multiplier that minimise norm of approx residual
-                multiplier = torch.sqrt(
-                    (self.upd_scale * torch.norm(act_cov[0][name], norm) * torch.norm(new_grad_cov[name], norm))
-                    / (torch.norm(new_act_cov[name], norm) * torch.norm(grad_cov[0][name], norm))
-                )
-                act_cov[0][name] = new_act_cov[name] + act_cov[0][name] / multiplier
-                grad_cov[0][name] = self.upd_scale * new_grad_cov[name] + multiplier * grad_cov[0][name]
+        if self.max_lapl_list_len is not None and len(act_cov) > self.max_lapl_list_len:
+            del act_cov[0]
+            del grad_cov[0]
+            del bn_fisher[0]
 
     def get_fisher_bd_kfac_covs(self, dataloader, param=None, run_inner=True, nstep_inner=None, lr_inner=None,
                                 exclude_module_name=None, verbose='KFAC calc'):
@@ -332,7 +312,7 @@ class LaplaceApprox(object):
         act_op_denom, grad_op_denom, bn_op_denom = self.init_kfac_blockdiag_fisher_denom()
 
         tqdm_total = dataloader.batch_sampler.__len__()
-        supp_idx = dataloader.batch_sampler.num_way * dataloader.batch_sampler.num_shot
+        supp_idx = self.model.num_way * dataloader.batch_sampler.num_shot
 
         with KroneckerContext(self.model) as ctxt:
             for images, labels in (

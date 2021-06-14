@@ -3,9 +3,7 @@
     "run_dir": "./runs",
     "tasklist_path": "./data_split/omniglot_seqtask/tasklist.npy",
     "device": "cuda",
-    "cuda_img": false,
-    "supercls": true,
-    "eval_supercls": true,
+    "cuda_img": true,
     "net": "ConvNetMonteCarlo",
     "net_kwargs": {
         "num_way": 5,
@@ -41,7 +39,6 @@
         "first_order": false,
         "num_query_per_cls": 15,
         "num_eval_task": 100,
-        "eval_task_by_supercls": false,
         "eval_per_num_epoch": 50,
         "nstep_inner_eval": 10
     },

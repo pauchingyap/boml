@@ -32,23 +32,18 @@
         "img_normalise": true
     },
     "meta_train_eval_kwargs": {
-        "seqtask": false,
         "nstep_outer": 5000,
         "num_eval_task": 100,
         "eval_per_num_iter": 50
     },
     "omniglot": {
-        "supercls": false,
-        "eval_supercls": false,
         "train_eval_kwargs": {
             "num_shot": 1,
             "num_query_per_cls": 15,
             "num_task_per_itr": 32,
-            "task_by_supercls": false,
             "nstep_inner": 1,
             "lr_inner": 0.4,
             "first_order": false,
-            "eval_task_by_supercls": false,
             "nstep_inner_eval": 3
         },
         "optim_outer_name": "Adam",
@@ -59,17 +54,13 @@
         "lr_sch_outer_kwargs": {}
     },
     "mini_quickdraw": {
-        "supercls": false,
-        "eval_supercls": false,
         "train_eval_kwargs": {
             "num_shot": 1,
             "num_query_per_cls": 15,
             "num_task_per_itr": 32,
-            "task_by_supercls": false,
             "nstep_inner": 3,
             "lr_inner": 0.2,
             "first_order": false,
-            "eval_task_by_supercls": false,
             "nstep_inner_eval": 5
         },
         "optim_outer_name": "Adam",
@@ -80,17 +71,13 @@
         "lr_sch_outer_kwargs": {}
     },
     "cifar_fs": {
-        "supercls": false,
-        "eval_supercls": false,
         "train_eval_kwargs": {
             "num_shot": 1,
             "num_query_per_cls": 15,
             "num_task_per_itr": 32,
-            "task_by_supercls": false,
             "nstep_inner": 5,
             "lr_inner": 0.1,
             "first_order": false,
-            "eval_task_by_supercls": false,
             "nstep_inner_eval": 10
         },
         "optim_outer_name": "Adam",
