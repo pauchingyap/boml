@@ -5,11 +5,11 @@ from tqdm import trange
 from abc import ABCMeta, abstractmethod
 from collections import OrderedDict
 
-from functional.cross_entropy import cross_entropy
-from data_generate.sampler import SuppQueryBatchSampler
-from train.inner import inner_maml
-from train.util import get_accuracy, kldiv_mvn_diagcov
-from train.eval import meta_evaluation, meta_evaluation_vi
+from boml.functional.cross_entropy import cross_entropy
+from boml.data_generate.sampler import SuppQueryBatchSampler
+from boml.main.inner import inner_maml
+from boml.main.util import get_accuracy, kldiv_mvn_diagcov
+from boml.main.eval import meta_evaluation, meta_evaluation_vi
 
 
 class BayesianOnlineMetaLearn(object, metaclass=ABCMeta):

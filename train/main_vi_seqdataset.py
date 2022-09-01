@@ -10,13 +10,13 @@ import json
 import random
 import logging
 
-import optim
-from config.configuration import get_run_name
-from data_generate.dataset import FewShotImageDataset
-from train import model as models
-from train.variational import VariationalApprox
-from train.boml import BayesianOnlineMetaLearnVariationalInference
-from train.util import enlist_transformation
+from boml import optim
+from boml.config.configuration import get_run_name
+from boml.data_generate.dataset import FewShotImageDataset
+from boml.main import model as models
+from boml.main.variational import VariationalApprox
+from boml.main.boml import BayesianOnlineMetaLearnVariationalInference
+from boml.main.util import enlist_transformation
 
 torch.backends.cudnn.enabled = True
 torch.backends.cudnn.deterministic = True

@@ -2,7 +2,7 @@ import os
 import numpy as np
 import shutil
 
-from data_generate.split_generator import augment_cls
+from boml.data_generate.split_generator import augment_cls
 
 
 if __name__ == "__main__":

@@ -6,7 +6,7 @@ from torchmeta.modules import MetaConv1d, MetaConv2d, MetaConv3d, MetaLinear, Me
 from abc import ABCMeta, abstractmethod
 from collections import OrderedDict
 
-from curvtorch.util_curv import iter_modules
+from boml.curvtorch.util_curv import iter_modules
 
 class CurvatureContext(object, metaclass=ABCMeta):
     def __init__(self, net):

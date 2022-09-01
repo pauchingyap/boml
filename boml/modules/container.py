@@ -1,7 +1,7 @@
 import torch.nn as nn
 from torchmeta.modules.module import MetaModule
 
-from modules.module import MetaModuleMonteCarlo
+from boml.modules.module import MetaModuleMonteCarlo
 
 
 class MetaSequential(nn.Sequential, MetaModuleMonteCarlo, MetaModule):

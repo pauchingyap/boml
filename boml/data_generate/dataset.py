@@ -1,7 +1,5 @@
 from torch.utils.data import Dataset
 import torch
-import torchvision.transforms as transforms
-import data_generate.transformations as transfm
 
 from PIL import Image
 from tqdm import tqdm
@@ -10,7 +8,7 @@ import pandas as pd
 import glob
 import random
 
-from train.util import split_path
+from boml.main.util import split_path
 
 class FewShotImageDataset(Dataset):
     def __init__(self, task_list, supercls=True, img_lvl=1, transform=None, device=None, cuda_img=True,

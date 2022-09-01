@@ -3,7 +3,7 @@ import torchvision.transforms as transforms
 import torchvision.transforms.functional as TF
 import os
 
-from data_generate import transformations as transfm
+from boml.data_generate import transformations as transfm
 
 
 def split_path(path):

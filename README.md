@@ -6,12 +6,12 @@ The code in this repository is for the experiments in [Addressing Catastrophic F
 + Python 3.8
 + PyTorch 1.8.0
 + Tensorboard 2.5.0
-+ Torchmeta 1.6.0
++ Torchmeta 1.8.0
 
 ### Getting started
-1. Install PyTorch based on the download information in [PyTorch website](https://pytorch.org/get-started/locally/).
-   
 1. Install requirements: `pip install -r requirements.txt` and internal modules: `pip install -e .`
+
+1. Install PyTorch based on the download information in [PyTorch website](https://pytorch.org/get-started/locally/).
 
 1. See `data_prepare` [README](data_prepare/README.md) to prepare for the datasets necessary for this project.
 

@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from modules.module import MetaModuleMonteCarlo
+from boml.modules.module import MetaModuleMonteCarlo
 
 
 class MetaLinearMonteCarlo(nn.Linear, MetaModuleMonteCarlo):

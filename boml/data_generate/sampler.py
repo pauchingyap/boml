@@ -3,7 +3,7 @@ import numpy as np
 from itertools import chain
 from torch.utils.data import Sampler
 
-from data_generate.dataset import get_df_inds_per_col_value
+from boml.data_generate.dataset import get_df_inds_per_col_value
 
 
 class SuppQueryBatchSampler(Sampler):

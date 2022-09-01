@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn.modules.utils import _pair
 
-from modules.module import MetaModuleMonteCarlo
+from boml.modules.module import MetaModuleMonteCarlo
 
 
 class MetaConv2dMonteCarlo(nn.Conv2d, MetaModuleMonteCarlo):

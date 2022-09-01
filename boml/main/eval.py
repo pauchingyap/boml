@@ -4,9 +4,9 @@ from torch.utils.data import DataLoader
 
 from collections import OrderedDict
 
-from data_generate.sampler import SuppQueryBatchSampler
-from train.inner import inner_maml
-from train.util import get_accuracy
+from boml.data_generate.sampler import SuppQueryBatchSampler
+from boml.main.inner import inner_maml
+from boml.main.util import get_accuracy
 
 
 def meta_evaluation(evalset, num_task, num_shot, num_query_per_cls, model, nstep_inner, lr_inner):

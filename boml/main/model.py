@@ -4,7 +4,7 @@ import math
 from torchmeta.modules import (MetaModule, MetaConv2d, MetaLinear, MetaBatchNorm1d, MetaBatchNorm2d)
 from abc import ABCMeta, abstractmethod
 
-from modules import MetaModuleMonteCarlo, MetaSequential, \
+from boml.modules import MetaModuleMonteCarlo, MetaSequential, \
     MetaLinearMonteCarlo, MetaConv2dMonteCarlo, \
     MetaBatchNorm1dMonteCarlo, MetaBatchNorm2dMonteCarlo, MaxPool2dMonteCarlo
 

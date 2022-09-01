@@ -7,10 +7,10 @@ from torchmeta.modules import \
 from tqdm import tqdm
 from collections import OrderedDict
 
-from train.inner import inner_maml
-from train.util import concat_param
-from curvtorch.util_curv import iter_named_modules
-from curvtorch.backward_context import KroneckerContext
+from boml.main.inner import inner_maml
+from boml.main.util import concat_param
+from boml.curvtorch.util_curv import iter_named_modules
+from boml.curvtorch.backward_context import KroneckerContext
 
 
 class LaplaceApprox(object):

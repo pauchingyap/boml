@@ -13,12 +13,12 @@ import json
 import logging
 from tqdm import tqdm
 
-from train import model as models
-from train.laplace import LaplaceApprox
-from train.boml import BayesianOnlineMetaLearnLaplaceApprox
-from train.util import enlist_transformation
-from data_generate.dataset import FewShotImageDataset
-from data_generate.sampler import SuppQueryBatchSampler
+from boml.main import model as models
+from boml.main.laplace import LaplaceApprox
+from boml.main.boml import BayesianOnlineMetaLearnLaplaceApprox
+from boml.main.util import enlist_transformation
+from boml.data_generate.dataset import FewShotImageDataset
+from boml.data_generate.sampler import SuppQueryBatchSampler
 
 torch.backends.cudnn.enabled = True
 torch.backends.cudnn.deterministic = True
